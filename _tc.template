@@ -1,0 +1,9 @@
+testCases = [
+        ]
+s = Solution()
+for tc in testCases:
+    result = s.testMethod(*tc[:-1])
+    passed = result == tc[-1]
+    if not passed:
+        print(tc, result, passed)
+
