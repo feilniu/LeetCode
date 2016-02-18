@@ -1,0 +1,6 @@
+DELETE p
+FROM Person AS p
+INNER JOIN Person AS p2
+ON p2.Email = p.Email
+WHERE p2.Id < p.Id
+;

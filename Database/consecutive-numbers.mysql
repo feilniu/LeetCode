@@ -1,0 +1,59 @@
+# vim:fdm=marker:cms=#%s:
+
+# create tables
+
+CREATE TABLE Logs(
+    Id int NOT NULL AUTO_INCREMENT,
+    Num int NOT NULL,
+    PRIMARY KEY(Id)
+);
+
+# insert data#{{{
+
+INSERT INTO Logs(Num)
+SELECT 1
+UNION ALL SELECT 1
+UNION ALL SELECT 1
+UNION ALL SELECT 2
+UNION ALL SELECT 1
+UNION ALL SELECT 2
+UNION ALL SELECT 2
+UNION ALL SELECT 3
+UNION ALL SELECT 3
+UNION ALL SELECT 3
+UNION ALL SELECT 3
+UNION ALL SELECT 3
+UNION ALL SELECT 4
+UNION ALL SELECT 5
+UNION ALL SELECT 3
+UNION ALL SELECT 3
+UNION ALL SELECT 4
+UNION ALL SELECT 4
+UNION ALL SELECT 5
+;
+
+#}}}
+# test query
+
+SELECT * FROM Logs ORDER BY Id;
+
+# solution
+
+SELECT DISTINCT Num
+FROM (
+    SELECT
+        IF(@prev_num = Num, @row_number := @row_number + 1, @row_number := 1) AS row_number,
+        @prev_num := Num AS Num
+    FROM (
+        SELECT * FROM Logs ORDER BY Id
+    ) L
+    CROSS JOIN (
+        SELECT
+            @prev_num := 0,
+            @row_number := 0
+    ) V
+) RN
+WHERE row_number = 3
+ORDER BY 1
+;
+

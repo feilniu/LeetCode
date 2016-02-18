@@ -1,0 +1,46 @@
+# vim:fdm=marker:cms=#%s:
+
+# create tables
+
+CREATE TABLE Scores(
+    Id int NOT NULL,
+    Score decimal(10,2) NOT NULL,
+    PRIMARY KEY(Id)
+);
+
+# insert data
+
+INSERT INTO Scores(Id, Score)
+SELECT 1, 3.50
+UNION ALL SELECT 2, 3.65
+UNION ALL SELECT 3, 4.00
+UNION ALL SELECT 4, 3.85
+UNION ALL SELECT 5, 4.00
+UNION ALL SELECT 6, 3.65
+;
+
+# test query
+
+# solution
+
+SELECT Score, Rank
+FROM (
+    SELECT
+        IF(@prev_score = Score,
+            IF(@rank = 0,
+                @rank := 1,
+                @rank := @rank),
+            @rank := @rank + 1) AS Rank,
+        @prev_score := Score AS Score
+    FROM (
+        SELECT * FROM Scores ORDER BY Score DESC
+    ) S
+    CROSS JOIN (
+        SELECT
+            @prev_score := 0.0,
+            @rank := 0
+    ) V
+) R
+ORDER BY Rank
+;
+

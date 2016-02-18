@@ -1,0 +1,45 @@
+# vim:fdm=marker:cms=#%s:
+
+# create tables
+# Tables are same with 185 	Department Top Three Salaries
+
+# insert data
+
+# test query
+
+# solution
+
+SELECT Department, Employee, Salary
+FROM (
+    SELECT
+        Department,
+        Employee,
+        IF(@prev_dptid = DepartmentId,
+            IF(@prev_salary = Salary,
+                @dense_rank := @dense_rank,
+                @dense_rank := @dense_rank + 1),
+            @dense_rank := 1) AS dense_rank,
+        @prev_dptid := DepartmentId AS DepartmentId,
+        @prev_salary := Salary AS Salary
+    FROM (
+        SELECT
+            e.Name AS Employee,
+            e.Salary,
+            d.Name AS Department,
+            d.Id AS DepartmentId
+        FROM Employee AS e
+        INNER JOIN Department AS d
+        ON e.DepartmentId = d.Id
+        ORDER BY d.Id, e.Salary DESC, e.Id
+    ) ED
+    CROSS JOIN (
+        SELECT
+            @prev_dptid := 0,
+            @prev_salary := 0,
+            @dense_rank := 0
+    ) V
+) T
+WHERE dense_rank = 1
+ORDER BY DepartmentId
+;
+

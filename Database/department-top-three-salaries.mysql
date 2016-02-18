@@ -1,0 +1,142 @@
+# vim:fdm=marker:cms=#%s:
+
+# create tables#{{{
+
+CREATE TABLE Department(
+    Id int NOT NULL,
+    Name varchar(50) NOT NULL,
+    PRIMARY KEY(Id)
+);
+CREATE TABLE Employee(
+    Id int NOT NULL,
+    Name varchar(50) NOT NULL,
+    Salary int NOT NULL,
+    DepartmentId int NOT NULL,
+    PRIMARY KEY(Id),
+    FOREIGN KEY(DepartmentId) REFERENCES Department(Id)
+);
+
+#}}}
+# insert data#{{{
+
+# test case 1
+INSERT INTO Department(Id, Name)
+SELECT 1, 'IT'
+UNION ALL SELECT 2, 'Sales'
+;
+INSERT INTO Employee(Id, Name, Salary, DepartmentId)
+SELECT 1, 'Joe', 70000, 1
+UNION ALL SELECT 2, 'Henry', 80000, 2
+UNION ALL SELECT 3, 'Sam', 60000, 2
+UNION ALL SELECT 4, 'Max', 90000, 1
+UNION ALL SELECT 5, 'Janet', 69000, 1
+UNION ALL SELECT 6, 'Randy', 85000, 1
+;
+
+# test case 2
+INSERT INTO Department(Id, Name)
+SELECT 3, 'HR'
+;
+INSERT INTO Employee(Id, Name, Salary, DepartmentId)
+SELECT 7, 'HRA', 60000, 3
+UNION ALL SELECT 8, 'HRB', 50000, 3
+UNION ALL SELECT 9, 'HRC', 50000, 3
+UNION ALL SELECT 10, 'HRD', 50000, 3
+UNION ALL SELECT 11, 'HRE', 40000, 3
+;
+
+# test case 3
+DELETE FROM Employee WHERE 1=1;
+INSERT INTO Employee(Id, Name, Salary, DepartmentId)
+SELECT 1, 'Joe', 60000, 1
+UNION ALL SELECT 2, 'Ralph', 50000, 1
+UNION ALL SELECT 3, 'Joel', 60000, 1
+UNION ALL SELECT 4, 'Tracy', 75000, 1
+;
+
+#}}}
+# test query#{{{
+
+# row_number, dense_rank, rank
+SELECT
+    Department,
+    Employee,
+    IF(@prev_dptid = DepartmentId,
+        @row_number := @row_number + 1,
+        @row_number := 1) AS row_number,
+    IF(@prev_dptid = DepartmentId,
+        IF(@prev_salary = Salary,
+            @dense_rank := @dense_rank,
+            @dense_rank := @dense_rank + 1),
+        @dense_rank := 1) AS dense_rank,
+    IF(@prev_dptid = DepartmentId,
+        IF(@prev_salary = Salary,
+            @rank := @rank,
+            @rank := @row_number),
+        @rank := 1) AS rank,
+    @prev_dptid := DepartmentId AS DepartmentId,
+    @prev_salary := Salary AS Salary
+FROM (
+    SELECT
+        e.Name AS Employee,
+        e.Salary,
+        d.Name AS Department,
+        d.Id AS DepartmentId
+    FROM Employee AS e
+    INNER JOIN Department AS d
+    ON e.DepartmentId = d.Id
+    ORDER BY d.Id, e.Salary DESC, e.Id
+) ED
+CROSS JOIN (
+    SELECT
+        @prev_dptid := 0,
+        @prev_salary := 0,
+        @row_number := 0,
+        @dense_rank := 0,
+        @rank := 0
+) V
+ORDER BY DepartmentId, row_number
+;
+
+#}}}
+# solution#{{{
+/*
+Write a SQL query to find employees who earn the top three salaries in each of the department.
+So it means to find employees whose dense rank of salary in each department are less than or equal to 3.
+*/
+
+SELECT Department, Employee, Salary
+FROM (
+    SELECT
+        Department,
+        Employee,
+        IF(@prev_dptid = DepartmentId,
+            IF(@prev_salary = Salary,
+                @dense_rank := @dense_rank,
+                @dense_rank := @dense_rank + 1),
+            @dense_rank := 1) AS dense_rank,
+        @prev_dptid := DepartmentId AS DepartmentId,
+        @prev_salary := Salary AS Salary
+    FROM (
+        SELECT
+            e.Name AS Employee,
+            e.Salary,
+            d.Name AS Department,
+            d.Id AS DepartmentId
+        FROM Employee AS e
+        INNER JOIN Department AS d
+        ON e.DepartmentId = d.Id
+        ORDER BY d.Id, e.Salary DESC, e.Id
+    ) ED
+    CROSS JOIN (
+        SELECT
+            @prev_dptid := 0,
+            @prev_salary := 0,
+            @dense_rank := 0
+    ) V
+) T
+WHERE dense_rank <= 3
+ORDER BY DepartmentId, dense_rank
+;
+
+#}}}

@@ -1,0 +1,36 @@
+# vim:fdm=marker:cms=#%s:
+
+# create tables
+
+CREATE TABLE Person(
+    Id int NOT NULL AUTO_INCREMENT,
+    Email varchar(100) NOT NULL,
+    PRIMARY KEY(Id)
+);
+
+# insert data
+
+INSERT INTO Person(Email)
+SELECT 'a@b.com'
+UNION ALL SELECT 'c@d.com'
+UNION ALL SELECT 'a@b.com'
+;
+
+# test query
+
+# solution
+
+SELECT DISTINCT p.Email
+FROM Person AS p
+WHERE EXISTS (
+    SELECT * FROM Person AS p2
+    WHERE p2.Email = p.Email AND p2.Id > p.Id
+    )
+;
+
+SELECT Email
+FROM Person
+GROUP BY Email
+HAVING COUNT(*) > 1
+;
+

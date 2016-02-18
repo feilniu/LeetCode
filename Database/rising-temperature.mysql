@@ -1,0 +1,6 @@
+SELECT w.Id
+FROM Weather w
+INNER JOIN Weather w2 ON w.Date = adddate(w2.Date, 1)
+WHERE w.Temperature > w2.Temperature
+ORDER BY Id
+;

@@ -1,0 +1,33 @@
+# vim:fdm=marker:cms=#%s:
+
+# create tables
+
+CREATE TABLE Employee(
+    Id int NOT NULL,
+    Name varchar(50) NOT NULL,
+    Salary int NOT NULL,
+    ManagerId int NULL,
+    PRIMARY KEY(Id),
+    FOREIGN KEY(ManagerId) REFERENCES Employee(Id)
+);
+
+# insert data
+
+INSERT INTO Employee(Id, Name, Salary, ManagerId)
+UNION ALL SELECT 1, 'Joe', 70000, 3
+UNION ALL SELECT 2, 'Henry', 80000, 4
+UNION ALL SELECT 3, 'Sam', 60000, NULL
+UNION ALL SELECT 4, 'Max', 90000, NULL
+;
+
+# test query
+
+# solution
+
+SELECT e.Name AS Employee
+FROM Employee AS e
+INNER JOIN Employee AS mgr
+ON e.ManagerId = mgr.Id
+WHERE e.Salary > mgr.Salary
+;
+
